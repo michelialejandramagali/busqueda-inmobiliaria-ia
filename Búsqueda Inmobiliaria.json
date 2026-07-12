@@ -1,0 +1,428 @@
+{
+  "name": "Búsqueda Inmobiliaria",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Búsqueda de Propiedades",
+        "formDescription": "Complete el formulario con sus criterios de búsqueda",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Zona",
+              "fieldName": "zona",
+              "placeholder": "Ej: Centro, Norte, Sur",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Número de Habitaciones",
+              "fieldType": "number",
+              "fieldName": "habitaciones",
+              "placeholder": "2",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Amenidades",
+              "fieldName": "amenities",
+              "placeholder": "Ej: piscina, gimnasio, parque"
+            },
+            {
+              "fieldLabel": "Precio Máximo",
+              "fieldType": "number",
+              "fieldName": "precio_maximo",
+              "placeholder": "500000",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Moneda",
+              "fieldType": "dropdown",
+              "fieldName": "moneda",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Pesos"
+                  },
+                  {
+                    "option": "Dólares"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tipo de Operación",
+              "fieldType": "dropdown",
+              "fieldName": "tipo_operacion",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Alquiler"
+                  },
+                  {
+                    "option": "Venta"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ca1b35ab-4b6b-4ec1-afb7-46cf209c533c",
+      "name": "Property Search Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        496
+      ],
+      "webhookId": "1532f66f-9cc1-4dcf-8996-ee3b8c648ec6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "zona",
+              "value": "={{ $json.zona }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "habitaciones",
+              "value": "={{ $json.habitaciones }}",
+              "type": "number"
+            },
+            {
+              "id": "3",
+              "name": "amenities",
+              "value": "={{ $json.amenities }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "precio_maximo",
+              "value": "={{ $json.precio_maximo }}",
+              "type": "number"
+            },
+            {
+              "id": "5",
+              "name": "moneda",
+              "value": "={{ $json.moneda }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "tipo_operacion",
+              "value": "={{ $json.tipo_operacion }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "submitted_at",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "02bb2221-47ce-44bd-bae4-bce330efb2b1",
+      "name": "Process Form Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Devolvé ÚNICAMENTE los términos de búsqueda para propiedades, sin site:, sin comillas, sin explicaciones.\n\nZona: {{ $json.zona }}\nHabitaciones: {{ $json.habitaciones }}\nComodidades: {{ $json.comodidades }}\nPrecio máximo: {{ $json.precio_maximo }}\nTipo de operación: {{ $json.tipo_operacion }}\n\nEjemplo de respuesta correcta: belgrano 2 ambientes venta hasta 300000",
+        "options": {
+          "systemMessage": "Sos un experto en búsqueda de propiedades inmobiliarias en Argentina. Generás queries de búsqueda optimizadas para Google que incluyen operadores de sitio específicos y términos relevantes para cada plataforma."
+        }
+      },
+      "id": "66e1a26e-53b8-452f-9550-31d97b3beb96",
+      "name": "Generate Search Queries",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        688,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        688,
+        688
+      ],
+      "id": "196e11a3-0a59-4366-b632-070d6da70707",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "fEotcGIGcfHbh02A",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "=GET",
+        "url": "https://serpapi.com/search?api_key=935ee72865995c2b3fb1c54071b6900885ee7a4d732233748209e7f1f369795c&q=site:zonaprop.com.ar {{ $json.output }}&hl=es&gl=ar",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        336
+      ],
+      "id": "083702e3-fb43-416a-82a3-e37cb593dbb1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search?api_key=935ee72865995c2b3fb1c54071b6900885ee7a4d732233748209e7f1f369795c&q=site:argenprop.com {{ $json.output }}&hl=es&gl=ar",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        496
+      ],
+      "id": "fc36cb5e-69fb-4fe3-a0f5-a93205fd26e9",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search?api_key=935ee72865995c2b3fb1c54071b6900885ee7a4d732233748209e7f1f369795c&q=site:inmuebles.mercadolibre.com.ar {{ $json.output }}&hl=es&gl=ar",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        672
+      ],
+      "id": "2b3c8a87-4149-4a56-8add-de4e60fa0fe6",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Resumí estas propiedades en venta. Para cada una indicá solo título y link.\n\n{{ JSON.stringify($json.organic_results?.slice(0,2)) }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1488,
+        496
+      ],
+      "id": "cfbde0cb-f4e4-44e4-9210-57035cd4733b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        672
+      ],
+      "id": "c98e269b-dffd-44e8-bc66-6936895d7719",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "fEotcGIGcfHbh02A",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1264,
+        480
+      ],
+      "id": "a122c5c9-4286-426f-b76d-b03c628f255f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "chatId": "8807553802",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        496
+      ],
+      "id": "565be1df-e178-49f9-a7df-1ff725cee462",
+      "name": "Send a text message",
+      "webhookId": "5a418480-1423-4b86-87f4-75f0fb20cfe7",
+      "credentials": {
+        "telegramApi": {
+          "id": "lGCorf9ZeDN7j3dR",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Property Search Form": {
+      "main": [
+        [
+          {
+            "node": "Process Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Form Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Search Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Search Queries",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Search Queries": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d0c3cc6c-38e8-4d31-8f95-29ce86a76434",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "001d9bd9a4c79a4784f6c3f289889c2f3e67939bb870ce79d59f46a1128899a1"
+  },
+  "nodeGroups": [],
+  "id": "qflnYkdgzXKuBxL2",
+  "tags": []
+}
